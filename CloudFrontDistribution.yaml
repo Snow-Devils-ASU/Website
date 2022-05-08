@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: CloudFormation template for S3 bucket to host static website
+
+Parameters:
+  Environment:
+    Description: The environment to deploy into. Controls caching behavior
+    Type: String
+    AllowedValues:
+      - dev
+      - prod
+  DomainName:
+    Description: The domain name for the website
+    Type: String
+  S3Bucket:
+    Type: String
+    Description: The name of the root S3 bucket.
+  S3BucketName:
+    Description: The domain name of the S3 bucket to use for the origin
+    Type: String
+  S3BucketRootArn:
+    Description: The ARN of the root S3 Bucket
+    Type: String
+  S3LoggingBucketDomain:
+    Description: The domain name of the bucket to use for logs.
+    Type: String
+
+Conditions:
+  IsProd: !Equals [!Ref Environment, prod]
+
+Resources:
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub 'CloudFront OAI for ${DomainName}'
+
+  S3BucketOAIPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref 'S3Bucket'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - s3:GetObject
+            Effect: Allow
+            Resource: !Sub '${S3BucketRootArn}/*'
+            Principal:
+              CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+#        Aliases: # CNAMES
+#          - String
+#        CacheBehaviors:
+#          - CacheBehavior
+        Comment: !Sub "A distribution for ${DomainName}"
+#        CustomErrorResponses:
+#          - CustomErrorResponse
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+          # Cache Policy ID specifies the caching policy to use, if we are in prod, then use the managed caching policy, if in dev, do not cache
+          # Managed Cache IDs can be found here: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html
+          CachePolicyId: !If [IsProd, "658327ea-f89d-4fab-a63d-7e88639e58f6", "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"]
+          Compress: true
+#          ResponseHeadersPolicyId: String
+          TargetOriginId: !Sub 'S3-${AWS::StackName}-root'  # ID of the origin below
+          ViewerProtocolPolicy: redirect-to-https
+        DefaultRootObject: "index.html"
+        Enabled: true
+        HttpVersion: "http2"
+        IPV6Enabled: true
+        Logging:
+          Bucket: !Ref S3LoggingBucketDomain
+          IncludeCookies: false
+          Prefix: "cdn/"
+#        OriginGroups:
+#          OriginGroups
+        Origins:
+          - DomainName: !Ref S3BucketName
+            Id: !Sub 'S3-${AWS::StackName}-root'
+            S3OriginConfig:
+              OriginAccessIdentity: !Join ['', ['origin-access-identity/cloudfront/', !Ref CloudFrontOriginAccessIdentity]]
+        PriceClass: "PriceClass_100"
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+#          AcmCertificateArn: String
+#          IamCertificateId: String
+#          MinimumProtocolVersion: String
+#          SslSupportMethod: String
+
+Outputs:
+  CloudFrontDistribution:
+    Description: CloudFront Distribution
+    Value: !GetAtt CloudFrontDistribution.DomainName

@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: CloudFormation template for S3 bucket to host static website
+
+Parameters:
+  Environment:
+    Description: The environment to deploy the buckets in
+    Type: String
+    Default: prod
+
+Resources:
+  # TODO: Do i really need a logging bucket?
+  LoggingBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: LogDeliveryWrite
+      BucketName: !Join ['-', ["snowdevils", "logs", !Ref Environment]]
+
+  WebsiteBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties: 
+      BucketEncryption: 
+        ServerSideEncryptionConfiguration: 
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      BucketName: !Join ['', ["snowdevilsasu.com-", !Ref Environment]]
+      LoggingConfiguration: 
+        DestinationBucketName: !Ref LoggingBucket
+        LogFilePrefix: !Join ['', ['bucket-', !Ref Environment]]
+      OwnershipControls: 
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      # Tags: 
+      #   - Tag
+
+Outputs:
+  S3Bucket:
+    Description: The name of the created S3 Website Bucket
+    Value: !Ref WebsiteBucket
+
+  S3BucketDomainName:
+    Description: The domain name of the created S3 bucket
+    Value: !GetAtt WebsiteBucket.DomainName
+
+  S3BucketDualStackDomainName:
+    Description: The dual stack (IPv6) domain name for the S3 Bucket
+    Value: !GetAtt WebsiteBucket.DualStackDomainName
+
+  S3BucketArn:
+    Description: The ARN of the S3 Website bucket
+    Value: !GetAtt WebsiteBucket.Arn
+
+  S3LoggingBucket:
+    Value: !Ref LoggingBucket
+    Description: The S3 logging bucket name
+
+  S3LoggingBucketDomainName:
+    Value: !GetAtt LoggingBucket.DomainName
+
+  S3LoggingBucketDualStackDomainName:
+    Value: !GetAtt LoggingBucket.DualStackDomainName
