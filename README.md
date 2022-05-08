@@ -1,11 +1,14 @@
 # Website
 The Snow Devils @ ASU website intended to be hosted on AWS.
 
+## Prerequisite 
+Install the AWS CLI and the AWS SAM CLI.
+
 ## Deployment Instructions
 You must first be authenticated with AWS using ``aws configure --profile snowdevil``
 
 
-``sam deploy --template RootStack.yaml --stack-name Website-Dev --config-env dev --resolve-s3``
+``sam deploy --template stack/RootStack.yaml --stack-name Website-Dev --config-env dev --resolve-s3``
 
 
 Delete a stack
@@ -13,4 +16,4 @@ Delete a stack
 
 
 ## Uploading website
-``aws s3 sync docroot/ s3://snowdevilsasu.com-dev --profile snowdevil``
+``aws s3 sync docroot/ s3://snowdevilsasu.com-dev --delete --profile snowdevil``
