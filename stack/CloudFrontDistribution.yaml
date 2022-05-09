@@ -68,7 +68,7 @@ Resources:
           # Managed Cache IDs can be found here: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html
           CachePolicyId: !If [IsProd, "658327ea-f89d-4fab-a63d-7e88639e58f6", "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"]
           Compress: true
-#          ResponseHeadersPolicyId: String
+          ResponseHeadersPolicyId: !Ref ResponseHeadersPolicy
           TargetOriginId: !Sub 'S3-${AWS::StackName}-root'  # ID of the origin below
           ViewerProtocolPolicy: redirect-to-https
         DefaultRootObject: "index.html"
@@ -93,6 +93,18 @@ Resources:
 #          IamCertificateId: String
 #          MinimumProtocolVersion: String
 #          SslSupportMethod: String
+
+  ResponseHeadersPolicy:
+    Type: AWS::CloudFront::ResponseHeadersPolicy
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Comment: Sets a custom header that specifies the environment this website is deployed in
+        Name: SetEnvironmentHeaders
+        CustomHeadersConfig:
+          Items:
+            - Header: SDASU-Environment
+              Override: true
+              Value: !Ref Environment
 
 Outputs:
   CloudFrontDistribution:
