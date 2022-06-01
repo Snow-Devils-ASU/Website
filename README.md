@@ -8,7 +8,7 @@ Install the AWS CLI and the AWS SAM CLI.
 You must first be authenticated with AWS using ``aws configure --profile snowdevil``
 
 
-``sam deploy --profile snowdevil --template stack/RootStack.yaml --stack-name Website-Dev --config-env dev --resolve-s3``
+``sam deploy --profile snowdevil --template stack/RootStack.yaml --resolve-s3 --config-env dev``
 
 
 Delete a stack

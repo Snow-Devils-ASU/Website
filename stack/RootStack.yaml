@@ -10,6 +10,22 @@ Parameters:
     AllowedValues:
       - dev
       - prod
+  HostedZoneId:
+    Description: The id of the hosted zone of the domain to deploy the site to.
+    Type: String
+  HostedZoneDomain:
+    Description: The root domain to deploy this site to. *This must be* the same as the name of the Hosted Zone given by the HostedZoneId.
+    Type: String
+  Subdomain:
+    Description: The subdomain of the hosted zone to deploy this site to. A new record set will be created in the hosted zone for this subdomain to point to the CDN created.
+    Type: String
+#  RootDomain:
+#    Description: The domain to deploy the site to, i.e. snowdevilsasu.com. This stack assumes this domain has a hosted zone already created in Route 53 with the same name as this.
+#    Type: String
+
+Conditions:
+  IsProd: !Equals [!Ref Environment, prod]
+  IsApex: !Equals [!Ref Subdomain, ""]
 
 Resources:
   Buckets:
@@ -20,6 +36,27 @@ Resources:
         Environment: !Ref Environment
       TimeoutInMinutes: 5
 
+  # Sets up the hosted zone and certificate
+#  Domain:
+#    Type: AWS::CloudFormation::Stack
+#    Properties:
+#      TemplateURL: ./Domain.yaml
+#      TimeoutInMinutes: 10
+#      Parameters:
+#        Environment: !Ref Environment
+#        Domain: !If [IsProd, !Ref RootDomain, !Join [".", ["beta", !Ref RootDomain]]]
+
+  WebsiteCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !If [IsApex, !Ref HostedZoneDomain, !Join [".", [!Ref Subdomain, !Ref HostedZoneDomain]]]
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !If [IsApex, !Ref HostedZoneDomain, !Join [".", [!Ref Subdomain, !Ref HostedZoneDomain]]] #!Ref RootDomain
+          HostedZoneId: !Ref HostedZoneId
+#          ValidationDomain: !Ref RootDomain
+
+  # Sets up the CDN and its DNS routes
   CDN:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -27,7 +64,9 @@ Resources:
       TimeoutInMinutes: 10
       Parameters:
         Environment: !Ref Environment
-        DomainName: ""
+        DomainName: !If [IsApex, !Ref HostedZoneDomain, !Join [".", [!Ref Subdomain, !Ref HostedZoneDomain]]]
+        DomainCertificateArn: !Ref WebsiteCertificate # !GetAtt Domain.Outputs.ZoneCertificateArn
+        HostedZoneId: !Ref HostedZoneId
         S3Bucket: !GetAtt Buckets.Outputs.S3Bucket
         S3BucketName: !GetAtt Buckets.Outputs.S3BucketDomainName
         S3BucketRootArn: !GetAtt Buckets.Outputs.S3BucketArn

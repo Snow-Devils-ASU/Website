@@ -15,6 +15,12 @@ Resources:
     Properties:
       AccessControl: LogDeliveryWrite
       BucketName: !Join ['-', ["snowdevils", "logs", !Ref Environment]]
+      LifecycleConfiguration:
+        Rules:
+          - ExpirationInDays: 1
+            Id: DeleteOldLogs
+#            Prefix: String
+            Status: Enabled
 
   WebsiteBucket:
     Type: 'AWS::S3::Bucket'
@@ -24,12 +30,17 @@ Resources:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
       BucketName: !Join ['', ["snowdevilsasu.com-", !Ref Environment]]
-      LoggingConfiguration: 
-        DestinationBucketName: !Ref LoggingBucket
-        LogFilePrefix: !Join ['', ['bucket-', !Ref Environment]]
+#      LoggingConfiguration:
+#        DestinationBucketName: !Ref LoggingBucket
+#        LogFilePrefix: !Join ['', ['bucket-', !Ref Environment, '/']]
       OwnershipControls: 
         Rules:
           - ObjectOwnership: BucketOwnerEnforced
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
       # Tags: 
       #   - Tag
 

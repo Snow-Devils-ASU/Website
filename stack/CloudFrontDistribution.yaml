@@ -12,6 +12,15 @@ Parameters:
   DomainName:
     Description: The domain name for the website
     Type: String
+  DomainCertificateArn:
+    Description: The ARN of a certificate for this domain
+    Type: String
+#  HostedZoneName:
+#    Description: The zone name for the hosted zone serving this distro's DNS entries
+#    Type: String
+  HostedZoneId:
+    Description: The id of the hosted zone to add the DNS records to,
+    Type: String
   S3Bucket:
     Type: String
     Description: The name of the root S3 bucket.
@@ -53,8 +62,8 @@ Resources:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
-#        Aliases: # CNAMES
-#          - String
+        Aliases: # CNAMES
+          - !Ref DomainName
 #        CacheBehaviors:
 #          - CacheBehavior
         Comment: !Sub "A distribution for ${DomainName}"
@@ -88,11 +97,10 @@ Resources:
               OriginAccessIdentity: !Join ['', ['origin-access-identity/cloudfront/', !Ref CloudFrontOriginAccessIdentity]]
         PriceClass: "PriceClass_100"
         ViewerCertificate:
-          CloudFrontDefaultCertificate: true
-#          AcmCertificateArn: String
+          AcmCertificateArn: !Ref DomainCertificateArn
 #          IamCertificateId: String
-#          MinimumProtocolVersion: String
-#          SslSupportMethod: String
+          MinimumProtocolVersion: TLSv1
+          SslSupportMethod: sni-only
 
   ResponseHeadersPolicy:
     Type: AWS::CloudFront::ResponseHeadersPolicy
@@ -105,6 +113,35 @@ Resources:
             - Header: SDASU-Environment
               Override: true
               Value: !Ref Environment
+
+  # The record sets to serve DNS queries about the cloud front distro
+  CloudFrontRecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      AliasTarget:
+        DNSName: !GetAtt CloudFrontDistribution.DomainName
+        #        EvaluateTargetHealth: Boolean
+        HostedZoneId: Z2FDTNDATAQYW2  # This comes from the docs here: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget.html
+      #      Comment: String
+      #      Failover: String
+      HostedZoneId: !Ref HostedZoneId
+#      HostedZoneName: !Ref HostedZoneName
+      Name: !Ref DomainName
+      Type: A
+
+  CloudFrontRecordSetIPv6:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      AliasTarget:
+        DNSName: !GetAtt CloudFrontDistribution.DomainName
+        #        EvaluateTargetHealth: Boolean
+        HostedZoneId: Z2FDTNDATAQYW2  # This comes from the docs here: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget.html
+      #      Comment: String
+      #      Failover: String
+      HostedZoneId: !Ref HostedZoneId
+#      HostedZoneName: !Ref HostedZoneName
+      Name: !Ref DomainName
+      Type: AAAA
 
 Outputs:
   CloudFrontDistribution:
