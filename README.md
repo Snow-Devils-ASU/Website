@@ -19,7 +19,7 @@ _The specific services we are using to deploy this website are called: [S3](http
 
 * S3: Is a storage service, like Google Drive, that lets us drop files in and then access them. The website will be stored here in a "bucket" (a drive).
 * CloudFront: Distributes the website from S3 globally.
-* Route53: Handles domain registration and DNS. Here is where you would manage renewing your domain name (snowdevilsasu.com) or buying another one.
+* Route53: Handles domain registration and DNS. Here is where you would manage renewing your domain name (snowdevilsasu.com) or buying another one. Administrators please see [Domain Readme](Domain%20Readme.md).
 * Certificate Manager: Modern websites are all secured using TLS/SSL certificates. This handles making a certificate for the website.
 * CloudFormation: See below.
 
