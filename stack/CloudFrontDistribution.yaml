@@ -4,7 +4,7 @@ Description: CloudFormation template for S3 bucket to host static website
 
 Parameters:
   Environment:
-    Description: The environment to deploy into. Controls caching behavior
+    Description: The environment to deploy into. Controls caching behavior.
     Type: String
     AllowedValues:
       - dev
@@ -30,9 +30,9 @@ Parameters:
   S3BucketRootArn:
     Description: The ARN of the root S3 Bucket
     Type: String
-  S3LoggingBucketDomain:
-    Description: The domain name of the bucket to use for logs.
-    Type: String
+#  S3LoggingBucketDomain:
+#    Description: The domain name of the bucket to use for logs.
+#    Type: String
 
 Conditions:
   IsProd: !Equals [!Ref Environment, prod]
@@ -84,10 +84,10 @@ Resources:
         Enabled: true
         HttpVersion: "http2"
         IPV6Enabled: true
-        Logging:
-          Bucket: !Ref S3LoggingBucketDomain
-          IncludeCookies: false
-          Prefix: "cdn/"
+#        Logging:
+#          Bucket: !Ref S3LoggingBucketDomain
+#          IncludeCookies: false
+#          Prefix: "cdn/"
 #        OriginGroups:
 #          OriginGroups
         Origins:
@@ -107,7 +107,7 @@ Resources:
     Properties:
       ResponseHeadersPolicyConfig:
         Comment: Sets a custom header that specifies the environment this website is deployed in
-        Name: SetEnvironmentHeaders
+        Name: !Join ["-", ["SetEnvironmentHeaders", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
         CustomHeadersConfig:
           Items:
             - Header: SDASU-Environment

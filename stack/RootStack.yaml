@@ -19,12 +19,8 @@ Parameters:
   Subdomain:
     Description: The subdomain of the hosted zone to deploy this site to. A new record set will be created in the hosted zone for this subdomain to point to the CDN created.
     Type: String
-#  RootDomain:
-#    Description: The domain to deploy the site to, i.e. snowdevilsasu.com. This stack assumes this domain has a hosted zone already created in Route 53 with the same name as this.
-#    Type: String
 
 Conditions:
-  IsProd: !Equals [!Ref Environment, prod]
   IsApex: !Equals [!Ref Subdomain, ""]
 
 Resources:
@@ -33,18 +29,8 @@ Resources:
     Properties:
       TemplateURL: ./WebsiteBucket.yaml
       Parameters:
-        Environment: !Ref Environment
+        Domain: !If [IsApex, !Ref HostedZoneDomain, !Join [".", [!Ref Subdomain, !Ref HostedZoneDomain]]]
       TimeoutInMinutes: 5
-
-  # Sets up the hosted zone and certificate
-#  Domain:
-#    Type: AWS::CloudFormation::Stack
-#    Properties:
-#      TemplateURL: ./Domain.yaml
-#      TimeoutInMinutes: 10
-#      Parameters:
-#        Environment: !Ref Environment
-#        Domain: !If [IsProd, !Ref RootDomain, !Join [".", ["beta", !Ref RootDomain]]]
 
   WebsiteCertificate:
     Type: AWS::CertificateManager::Certificate
@@ -54,7 +40,6 @@ Resources:
       DomainValidationOptions:
         - DomainName: !If [IsApex, !Ref HostedZoneDomain, !Join [".", [!Ref Subdomain, !Ref HostedZoneDomain]]] #!Ref RootDomain
           HostedZoneId: !Ref HostedZoneId
-#          ValidationDomain: !Ref RootDomain
 
   # Sets up the CDN and its DNS routes
   CDN:
@@ -70,7 +55,7 @@ Resources:
         S3Bucket: !GetAtt Buckets.Outputs.S3Bucket
         S3BucketName: !GetAtt Buckets.Outputs.S3BucketDomainName
         S3BucketRootArn: !GetAtt Buckets.Outputs.S3BucketArn
-        S3LoggingBucketDomain: !GetAtt Buckets.Outputs.S3LoggingBucketDomainName
+#        S3LoggingBucketDomain: !GetAtt Buckets.Outputs.S3LoggingBucketDomainName
 
 
 Outputs:
@@ -78,6 +63,10 @@ Outputs:
     Description: CloudFront Distribution
     Value: !GetAtt CDN.Outputs.CloudFrontDistribution
 
-  S3BucketDualStackDomainName:
-    Description: The dual stack (IPv6) domain name for the S3 Bucket
-    Value: !GetAtt Buckets.Outputs.S3BucketDualStackDomainName
+  S3WebsiteBucket:
+    Description: The name of the bucket where the website content should be stored. Upload the website assets to this bucket.
+    Value: !GetAtt Buckets.Outputs.S3Bucket
+
+  DeploymentDomain:
+    Description: The domain this website was deployed to. Same as the input given in.
+    Value: !Join [".", [!Ref Subdomain, !Ref HostedZoneDomain]]

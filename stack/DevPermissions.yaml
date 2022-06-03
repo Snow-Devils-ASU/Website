@@ -1,0 +1,60 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Sets up the Dev IAM group that then users can be added to. Will give them dev privileges on the relevant services.
+
+Resources:
+  # Gives devs full access to all relevant services, except they cannot edit domains in route 53
+  DevGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: SnowDevilDeveloper
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/CloudFrontFullAccess
+#        - arn:aws:iam::aws:policy/AmazonRoute53FullAccess
+        - arn:aws:iam::aws:policy/AWSCertificateManagerFullAccess
+        - arn:aws:iam::aws:policy/AWSCloudFormationFullAccess
+#      Path: String
+      Policies:
+        - PolicyName: LimitedRoute53Access
+          PolicyDocument: {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "route53:*",
+                  "route53domains:CheckDomainTransferability",
+                  "route53domains:CheckDomainAvailability",
+                  "route53domains:ListDomains",
+                  "route53domains:ListTagsForDomain",
+                  "route53domains:ListOperations",
+                  "route53domains:ViewBilling",
+                  "route53domains:GetDomainSuggestions",
+                  "route53domains:GetContactReachabilityStatus",
+                  "route53domains:GetDomainDetail",
+                  "route53domains:ListPrices",
+                  "route53domains:GetOperationDetail",
+                  "cloudfront:ListDistributions",
+                  "elasticloadbalancing:DescribeLoadBalancers",
+                  "elasticbeanstalk:DescribeEnvironments",
+                  "s3:ListBucket",
+                  "s3:GetBucketLocation",
+                  "s3:GetBucketWebsite",
+                  "ec2:DescribeVpcs",
+                  "ec2:DescribeVpcEndpoints",
+                  "ec2:DescribeRegions",
+                  "sns:ListTopics",
+                  "sns:ListSubscriptionsByTopic",
+                  "cloudwatch:DescribeAlarms",
+                  "cloudwatch:GetMetricStatistics"
+                ],
+                "Resource": "*"
+              },
+              {
+                "Effect": "Allow",
+                "Action": "apigateway:GET",
+                "Resource": "arn:aws:apigateway:*::/domainnames"
+              }
+            ]
+          }

@@ -3,24 +3,23 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: CloudFormation template for S3 bucket to host static website
 
 Parameters:
-  Environment:
-    Description: The environment to deploy the buckets in
+  Domain:
+    Description: The domain the buckets are storing content for
     Type: String
-    Default: prod
 
 Resources:
   # TODO: Do i really need a logging bucket?
-  LoggingBucket:
-    Type: 'AWS::S3::Bucket'
-    Properties:
-      AccessControl: LogDeliveryWrite
-      BucketName: !Join ['-', ["snowdevils", "logs", !Ref Environment]]
-      LifecycleConfiguration:
-        Rules:
-          - ExpirationInDays: 1
-            Id: DeleteOldLogs
-#            Prefix: String
-            Status: Enabled
+#  LoggingBucket:
+#    Type: 'AWS::S3::Bucket'
+#    Properties:
+#      AccessControl: LogDeliveryWrite
+#      BucketName: !Join ["-", [!Ref Domain, !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]], "logs"]] # Essentially appends a random id to the end of the domain (part of stack id)
+#      LifecycleConfiguration:
+#        Rules:
+#          - ExpirationInDays: 1
+#            Id: DeleteOldLogs
+##            Prefix: String
+#            Status: Enabled
 
   WebsiteBucket:
     Type: 'AWS::S3::Bucket'
@@ -29,7 +28,7 @@ Resources:
         ServerSideEncryptionConfiguration: 
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      BucketName: !Join ['', ["snowdevilsasu.com-", !Ref Environment]]
+      BucketName: !Join ["-", [!Ref Domain, !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
 #      LoggingConfiguration:
 #        DestinationBucketName: !Ref LoggingBucket
 #        LogFilePrefix: !Join ['', ['bucket-', !Ref Environment, '/']]
@@ -61,12 +60,12 @@ Outputs:
     Description: The ARN of the S3 Website bucket
     Value: !GetAtt WebsiteBucket.Arn
 
-  S3LoggingBucket:
-    Value: !Ref LoggingBucket
-    Description: The S3 logging bucket name
-
-  S3LoggingBucketDomainName:
-    Value: !GetAtt LoggingBucket.DomainName
-
-  S3LoggingBucketDualStackDomainName:
-    Value: !GetAtt LoggingBucket.DualStackDomainName
+#  S3LoggingBucket:
+#    Value: !Ref LoggingBucket
+#    Description: The S3 logging bucket name
+#
+#  S3LoggingBucketDomainName:
+#    Value: !GetAtt LoggingBucket.DomainName
+#
+#  S3LoggingBucketDualStackDomainName:
+#    Value: !GetAtt LoggingBucket.DualStackDomainName

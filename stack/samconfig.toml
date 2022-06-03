@@ -2,15 +2,20 @@ version=0.1
 
 [dev.global.parameters]
 region = "us-east-1"
-parameter_overrides = "Environment=dev RootDomain=snowdevilsasu.com"
+parameter_overrides = "Environment=dev HostedZoneId=HOSTEDZONEID HostedZoneDomain=snowdevilsasu.com Subdomain=beta"
 stack_name = "Website-Dev"
 
 [prod.global.parameters]
 region = "us-east-1"
-parameter_overrides = "Environment=prod RootDomain=snowdevilsasu.com"
+parameter_overrides = "Environment=prod HostedZoneId=HOSTEDZONEID HostedZoneDomain=snowdevilsasu.com Subdomain=\"\""
 stack_name = "Website-Prod"
 
 [aarondev.global.parameters]
 region = "us-east-1"
-parameter_overrides = "Environment=prod HostedZoneId=Z0342598BXSFEDBIORG1 HostedZoneDomain=snowdevils.link Subdomain=beta"
-stack_name = "Website-Dev"
+parameter_overrides = "Environment=dev HostedZoneId=Z0342598BXSFEDBIORG1 HostedZoneDomain=snowdevils.link Subdomain=beta"
+stack_name = "Aaron-Website-Dev"
+
+[aaronprod.global.parameters]
+region = "us-east-1"
+parameter_overrides = "Environment=prod HostedZoneId=Z0342598BXSFEDBIORG1 HostedZoneDomain=snowdevils.link Subdomain=\"\""
+stack_name = "Aaron-Website-Prod"
