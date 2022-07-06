@@ -66,7 +66,9 @@ Then I can browse to [beta.snowdevilsasu.com](https://beta.snowdevilsasu.com) to
 
 ## Delete a Stack
 1. Remove everything from the S3 bucket: ``aws s3 rm s3://BUCKET_NAME --recursive --profile snowdevil``
-2. Run ``sam delete --region us-east-1 --profile snowdevil --stack-name Website-Dev``
+2. Run the following command for whichever stack you are deleting:
+    a. Dev: ``sam delete --region us-east-1 --profile snowdevil --stack-name Website-Dev``
+    b. Prod: ``sam delete --region us-east-1 --profile snowdevil --stack-name Website-Prod``
 
 If you do not clean out the bucket, then the stack will fail to delete. Remove everything and then try to delete the stack again.
 
