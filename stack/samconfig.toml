@@ -2,10 +2,10 @@ version=0.1
 
 [dev.global.parameters]
 region = "us-east-1"
-parameter_overrides = "Environment=dev HostedZoneId=HOSTEDZONEID HostedZoneDomain=snowdevilsasu.com Subdomain=beta"
+parameter_overrides = "Environment=dev HostedZoneId=Z01278861ZEVHCEVCQKKZ HostedZoneDomain=snowdevilsasu.com Subdomain=beta"
 stack_name = "Website-Dev"
 
 [prod.global.parameters]
 region = "us-east-1"
-parameter_overrides = "Environment=prod HostedZoneId=HOSTEDZONEID HostedZoneDomain=snowdevilsasu.com Subdomain=\"\""
+parameter_overrides = "Environment=prod HostedZoneId=Z01278861ZEVHCEVCQKKZ HostedZoneDomain=snowdevilsasu.com Subdomain=\"\""
 stack_name = "Website-Prod"
